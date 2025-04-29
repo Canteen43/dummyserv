@@ -41,27 +41,65 @@ int main(int argc, char** argv)
 		throw std::runtime_error("listen() failed!");
 	std::cout << "Socket listening." << "\n";
 
-	// Preparing client address
-	sockaddr_in clientAddress;
-	socklen_t client_len = sizeof(clientAddress);
+	// First client
+	{
+		// Preparing client address
+		sockaddr_in clientAddress;
+		socklen_t client_len = sizeof(clientAddress);
 
-	// Accepting client connection
-	int client_fd = accept(socketFD, (struct sockaddr*)&clientAddress, &client_len);
-	if (client_fd == -1)
-		throw std::runtime_error("accept() failed!");
-	std::cout << "Client connected.\n";
+		// Accepting client connection
+		int client_fd = accept(socketFD, (struct sockaddr*)&clientAddress, &client_len);
+		if (client_fd == -1)
+			throw std::runtime_error("accept() failed!");
+		std::cout << "Client connected.\n";
 
-	// Reverse engineering client details
-	char buf[16];
-	inet_ntop(AF_INET,  &(clientAddress.sin_addr), buf, INET_ADDRSTRLEN); 
-	std::cout << "\tSocket value: " << client_fd << "\n"
-	<< "\tIP address: " << buf << "\n"
-	<< "\tPort: " << ntohs(clientAddress.sin_port) << "\n";
+		// Reverse engineering client details
+		{
+			char buf[16];
+			inet_ntop(AF_INET,  &(clientAddress.sin_addr), buf, INET_ADDRSTRLEN); 
+			std::cout << "\tSocket value: " << client_fd << "\n"
+			<< "\tIP address: " << buf << "\n"
+			<< "\tPort: " << ntohs(clientAddress.sin_port) << "\n";
+		}
+		// Printing request
+		{
+			char buffer[4096];
+			int bytes = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+			buffer[bytes] = '\0'; // Null-terminate it!
+			std::cout << buffer << std::endl; // See the browser's HTTP request!
+		}
+		// Responding 
+		write(client_fd, "HTTP/1.1 200 OK\nContent-Length: 13\n\nHello, world!\n", 50);
+	}
 
-	char buffer[4096];
-	int bytes = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-	buffer[bytes] = '\0'; // Null-terminate it!
-	std::cout << buffer << std::endl; // See the browser's HTTP request!
-	
-	write(client_fd, "HTTP/1.1 200 OK\nContent-Length: 13\n\nHello, world!\n", 50);
+	// Second client
+	{
+		// Preparing client address
+		sockaddr_in clientAddress;
+		socklen_t client_len = sizeof(clientAddress);
+
+		// Accepting client connection
+		int client_fd = accept(socketFD, (struct sockaddr*)&clientAddress, &client_len);
+		if (client_fd == -1)
+			throw std::runtime_error("accept() failed!");
+		std::cout << "Client connected.\n";
+
+		// Reverse engineering client details
+		{
+			char buf[16];
+			inet_ntop(AF_INET,  &(clientAddress.sin_addr), buf, INET_ADDRSTRLEN); 
+			std::cout << "\tSocket value: " << client_fd << "\n"
+			<< "\tIP address: " << buf << "\n"
+			<< "\tPort: " << ntohs(clientAddress.sin_port) << "\n";
+		}
+		// Printing request
+		{
+			char buffer[4096];
+			int bytes = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+			buffer[bytes] = '\0'; // Null-terminate it!
+			std::cout << buffer << std::endl; // See the browser's HTTP request!
+		}
+		// Responding 
+		write(client_fd, "HTTP/1.1 200 OK\nContent-Length: 13\n\nHello, world!\n", 50);
+	}
 }
