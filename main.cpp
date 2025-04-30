@@ -100,6 +100,6 @@ int main(int argc, char** argv)
 			std::cout << buffer << std::endl; // See the browser's HTTP request!
 		}
 		// Responding 
-		write(client_fd, "HTTP/1.1 200 OK\nContent-Length: 13\n\nHello, grils!\n", 50);
+		write(client_fd, "HTTP/1.1 200 OK\nContent-Length: 13\n\nHello, girls!\n", 50);
 	}
 }
